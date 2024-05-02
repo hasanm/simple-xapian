@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <map>
 #include <vector>
@@ -15,10 +16,6 @@
 #define INDEX_PATH "/home/p-hasan/work/qt/my-xapian/build/index_data"
 
 using namespace std;
-
-
-
-
 
 void* easy_init() {
     MyXapian *g = new MyXapian;
@@ -33,6 +30,34 @@ void* easy_init() {
     }
     
     return g; 
+}
+
+int easy_estimate(void *ptr, char *str) {
+
+    MyXapian *g = static_cast<MyXapian*> (ptr);
+    
+    try {
+        string query_str(str);
+        Xapian::Enquire enquire(*g->db);
+        
+        Xapian::QueryParser qp;
+        Xapian::Query query = qp.parse_query(query_str);
+        cout<<"Query is "<<query.get_description()<<endl;
+        
+        
+        enquire.set_query(query);
+        Xapian::MSet result = enquire.get_mset(0,10);
+
+        cout<<result.get_matches_estimated()<<" result found"<<endl;
+
+        return result.get_matches_estimated();
+        
+    } catch (const Xapian::Error e) {
+        cout << e.get_description() << endl; 
+    }
+    
+    return 0;    
+    
 }
 
 int easy_search(void *ptr, char *str, int beg, int end) {

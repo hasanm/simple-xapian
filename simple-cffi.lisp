@@ -33,11 +33,21 @@
 
 (cffi:defcfun "easy_init" my-xapian)
 
+(cffi:defcfun "easy_estimate" :int
+  (handle my-xapian)
+  (str :pointer))
+
 (cffi:defcfun "easy_search" :int
   (handle my-xapian)
   (str :pointer)
   (beg :int)
   (end :int))
+
+
+(defun my-estimate (handle query)
+  (unwind-protect
+       (cffi:with-foreign-string (s query)
+         (easy-estimate handle s))))
 
 (defun my-search (handle query beg end)
   (unwind-protect
@@ -47,6 +57,7 @@
 
 (defparameter *instance* (easy-init))
 (format t "~a~%" *instance*)
+(format t "Estimated : ~a ~%" (my-estimate *instance* "UPASS"))
 (my-search *instance* "UPASS" 0 5)
 
 
