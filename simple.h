@@ -1,10 +1,11 @@
-#ifndef SYSTEM_INFO_H
-#define SYSTEM_INFO_H
+#ifndef SIMPLE_H
+#define SIMPLE_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-    char* get_machine();
+    void* easy_init();
+    int easy_search(void *ptr, char *str, int beg, int end);
 
 #ifdef __cplusplus
 }

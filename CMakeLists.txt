@@ -7,7 +7,7 @@ project(simple-xapian VERSION 1.0 LANGUAGES CXX)
 
 find_package(Xapian REQUIRED)
 
-add_library(${CMAKE_PROJECT_NAME} SHARED MyContainer.cpp simple.cpp)
+add_library(${CMAKE_PROJECT_NAME} SHARED MyXapian.cpp simple.cpp)
 
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC
                            "${PROJECT_BINARY_DIR}")
