@@ -1,2 +1,2 @@
 # simple-cv
-C interface to OpenCV 
+C interface to Xapian 
