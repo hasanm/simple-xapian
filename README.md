@@ -1,2 +1,2 @@
-# simple-cv
+# simple-xapian
 C interface to Xapian 
