@@ -10,6 +10,7 @@
 #include "simple.h"
 #include "MyXapian.h"
 #include <xapian.h>
+#include <string.h>
 
 #define QUERY "upass"
 #define F_DOCID 1
@@ -93,7 +94,7 @@ int easy_search(void *ptr, char *str, int beg, int end) {
 
 
 
-int easy_perform(void *ptr, char *str, int beg, int end, size_t (*f)(int)) {
+int easy_perform(void *ptr, char *str, int beg, int end, size_t (*f)(size_t), char *buf) {
     MyXapian *g = static_cast<MyXapian*> (ptr);
     
     try {
@@ -113,9 +114,9 @@ int easy_perform(void *ptr, char *str, int beg, int end, size_t (*f)(int)) {
         
         for(Xapian::MSetIterator iter = result.begin(); iter != result.end(); iter++){
             Xapian::Document doc = iter.get_document();
-            cout<<iter.get_rank()<<", data"<<doc.get_data()<<endl;
-            (*f)(153);
-            
+            // cout<<iter.get_rank()<<", data"<<doc.get_data()<<endl;
+            strcpy(buf, doc.get_data().c_str());
+            (*f)(strlen(buf));
         }        
         
     } catch (const Xapian::Error e) {

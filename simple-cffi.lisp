@@ -1,3 +1,4 @@
+(require "alexandria")
 (require :cffi)
 (require :cffi-libffi)
 (require :cl-ppcre)
@@ -51,7 +52,8 @@
   (str :pointer)
   (beg :int)
   (end :int)
-  (f   :pointer))
+  (f   :pointer)
+  (buff :pointer))
 
 (cffi:defcallback easy-write size ((size size))
   (let ()
@@ -62,19 +64,34 @@
       (error () (if (zerop 3) 1 0)))))
 
 
-(defun my-perform (query)
-  (let ((handle (easy-init)))
+(defun my-perform (handle query)
+  (let ((buffer (cffi:foreign-alloc :char :count 4096
+                                    :initial-element 0)))
     (with-slots (pointer) handle
       (with-output-to-string (contents)
         (let ((*easy-write-procedure*
-                (lambda (string)
-                  (format t "~a TYPE : ~a~%"  string (type-of string))
-                  (write-string string contents))))
+                (lambda (size)
+                  (let* ((s (cffi:foreign-string-to-lisp buffer :count size))
+                         (lines (cl-ppcre:split #\newline s)))
+                    (loop for line in lines
+                          do (let* ((parts (cl-ppcre:split "=" line))
+                                    (key (first parts))
+                                    (val (second parts)))
+                               (if (or (string= key "url")
+                                       ;; (string= key "filename")
+                                       ;; (string= key "abstract")
+                                       )
+                                   (let ()
+                                     (format t "~a~%" val)))))
+                    (write-string s contents)
+                    ))))
           (declare (special *easy-write-procedure*))
           (unwind-protect
                (cffi:with-foreign-string (s query)
-                 (easy-perform handle s 0 10 (cffi:callback easy-write))))
-          (format t "OUTPUT : ~a~%" (get-output-stream-string contents)))))))
+                 (easy-perform handle s 0 100 (cffi:callback easy-write) buffer)))
+          ;; (format t "OUTPUT : ~a~%" (get-output-stream-string contents))
+          )))
+    (cffi:foreign-free buffer)))
 
 
 (defun my-estimate (handle query)
@@ -89,10 +106,14 @@
 
 (defparameter *instance* (easy-init))
 (format t "~a~%" *instance*)
-;; (format t "Estimated : ~a ~%" (my-estimate *instance* "UPASS"))
+(format t "Estimated : ~a ~%" (my-estimate *instance* "housesd"))
 ;; (my-search *instance* "UPASS" 0 5)
-(my-perform "UPASS")
+;; (my-search *instance* "housesd" 0 5)
+
+(defun my-test (query)
+  (my-perform *instance* query))
+
+;; (sb-ext:exit)
 
 
-(sb-ext:exit)
 
