@@ -94,7 +94,7 @@ int easy_search(void *ptr, char *str, int beg, int end) {
 
 
 
-int easy_perform(void *ptr, char *str, int beg, int end, size_t (*f)(size_t), char *buf) {
+int easy_perform(void *ptr, char *str, int beg, int end, size_t (*f)(size_t, size_t), char *buf) {
     MyXapian *g = static_cast<MyXapian*> (ptr);
     
     try {
@@ -116,7 +116,7 @@ int easy_perform(void *ptr, char *str, int beg, int end, size_t (*f)(size_t), ch
             Xapian::Document doc = iter.get_document();
             // cout<<iter.get_rank()<<", data"<<doc.get_data()<<endl;
             strcpy(buf, doc.get_data().c_str());
-            (*f)(strlen(buf));
+            (*f)(strlen(buf), iter.get_rank());
         }        
         
     } catch (const Xapian::Error e) {

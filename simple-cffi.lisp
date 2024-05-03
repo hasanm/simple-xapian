@@ -55,22 +55,22 @@
   (f   :pointer)
   (buff :pointer))
 
-(cffi:defcallback easy-write size ((size size))
+(cffi:defcallback easy-write size ((size size) (rank size))
   (let ()
     (handler-case
         (progn (funcall (symbol-value '*easy-write-procedure*)
-                        size)
+                        size rank)
                3)
       (error () (if (zerop 3) 1 0)))))
 
 
-(defun my-perform (handle query)
+(defun my-perform (handle query beg end)
   (let ((buffer (cffi:foreign-alloc :char :count 4096
                                     :initial-element 0)))
     (with-slots (pointer) handle
       (with-output-to-string (contents)
         (let ((*easy-write-procedure*
-                (lambda (size)
+                (lambda (size rank)
                   (let* ((s (cffi:foreign-string-to-lisp buffer :count size))
                          (lines (cl-ppcre:split #\newline s)))
                     (loop for line in lines
@@ -82,13 +82,13 @@
                                        ;; (string= key "abstract")
                                        )
                                    (let ()
-                                     (format t "~a~%" val)))))
+                                     (format t "~a ~a~%" rank val)))))
                     (write-string s contents)
                     ))))
           (declare (special *easy-write-procedure*))
           (unwind-protect
                (cffi:with-foreign-string (s query)
-                 (easy-perform handle s 0 100 (cffi:callback easy-write) buffer)))
+                 (easy-perform handle s beg end (cffi:callback easy-write) buffer)))
           ;; (format t "OUTPUT : ~a~%" (get-output-stream-string contents))
           )))
     (cffi:foreign-free buffer)))
@@ -110,10 +110,13 @@
 ;; (my-search *instance* "UPASS" 0 5)
 ;; (my-search *instance* "housesd" 0 5)
 
-(defun my-test (query)
-  (my-perform *instance* query))
+(defun my-test (query beg end)
+  (my-perform *instance* query beg end))
 
-;; (sb-ext:exit)
+
+(my-test "upass" 0 4)
+
+(sb-ext:exit)
 
 
 
