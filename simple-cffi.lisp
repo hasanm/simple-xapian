@@ -44,13 +44,6 @@
   (handle my-xapian)
   (str :pointer)
   (beg :int)
-  (end :int))
-
-
-(cffi:defcfun "easy_perform" :int
-  (handle my-xapian)
-  (str :pointer)
-  (beg :int)
   (end :int)
   (f   :pointer)
   (buff :pointer))
@@ -79,16 +72,16 @@
                                     (val (second parts)))
                                (if (or (string= key "url")
                                        ;; (string= key "filename")
-                                       ;; (string= key "abstract")
+                                       (string= key "abstract")
                                        )
                                    (let ()
-                                     (format t "~a ~a~%" rank val)))))
+                                     (format t "~a ~a~%" rank (subseq val 4))))))
                     (write-string s contents)
                     ))))
           (declare (special *easy-write-procedure*))
           (unwind-protect
                (cffi:with-foreign-string (s query)
-                 (easy-perform handle s beg end (cffi:callback easy-write) buffer)))
+                 (easy-search handle s beg end (cffi:callback easy-write) buffer)))
           ;; (format t "OUTPUT : ~a~%" (get-output-stream-string contents))
           )))
     (cffi:foreign-free buffer)))
@@ -99,24 +92,20 @@
        (cffi:with-foreign-string (s query)
          (easy-estimate handle s))))
 
-(defun my-search (handle query beg end)
-  (unwind-protect
-       (cffi:with-foreign-string (s query)
-         (easy-search handle s beg end))))
-
 (defparameter *instance* (easy-init))
 (format t "~a~%" *instance*)
 (format t "Estimated : ~a ~%" (my-estimate *instance* "housesd"))
-;; (my-search *instance* "UPASS" 0 5)
-;; (my-search *instance* "housesd" 0 5)
-
-(defun my-test (query beg end)
-  (my-perform *instance* query beg end))
 
 
-(my-test "upass" 0 4)
+(defun my-test (query)
+    (let ()
+      (format t "Estimated : ~a ~%" (my-estimate *instance* query))  
+      (my-perform *instance* query 0 (min 30 (my-estimate *instance* query)))) )
 
-(sb-ext:exit)
+
+
+; (sb-ext:exit)
+
 
 
 
